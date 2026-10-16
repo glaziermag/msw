@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   compare:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     outputs:
       latest_version: ${{ steps.get-versions.outputs.latest_version }}
       rc_version: ${{ steps.get-versions.outputs.rc_version }}
@@ -37,12 +37,15 @@ jobs:
           echo "rc_version=$rc_major_minor" >> $GITHUB_OUTPUT
 
   test:
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     needs: [compare]
     # Skip TypeScript compatibility check on "main".
     # A merged pull request implies passing "typescript" job.
-    if: ${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}
+    if: ${{ needs.compare.result == 'success' }}
     steps:
+      - name: "[fork-only] Show compare outputs"
+        run: echo "latest_version='${{ needs.compare.outputs.latest_version }}' rc_version='${{ needs.compare.outputs.rc_version }}' condition=${{ needs.compare.outputs.latest_version != needs.compare.outputs.rc_version }}"
+
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
 
